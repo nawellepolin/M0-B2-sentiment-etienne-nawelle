@@ -1,0 +1,113 @@
+{
+  "info": {
+    "name": "M0-B2 Aubergine Hôtels — sentiment FR",
+    "description": "Collection Postman de départ pour le brief M0-B2. Les requêtes `/health` et `/info` sont préremplies. Les requêtes `/predict` sont à compléter selon les cas que tu veux tester (happy path, cas limites, cas piégeux).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "GET /health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": ["{{base_url}}"],
+          "path": ["health"]
+        },
+        "description": "Statut du service. `model_loaded:true` quand le modèle CamemBERT est prêt."
+      },
+      "response": []
+    },
+    {
+      "name": "GET /info",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/info",
+          "host": ["{{base_url}}"],
+          "path": ["info"]
+        },
+        "description": "Métadonnées du service : nom du modèle, classes natives 5★, classes cibles 3 (négatif/neutre/positif), max length texte."
+      },
+      "response": []
+    },
+    {
+      "name": "POST /predict — review positive",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"texte\": \"Personnel charmant, chambre impeccable, petit-déjeuner copieux. On reviendra !\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/predict",
+          "host": ["{{base_url}}"],
+          "path": ["predict"]
+        },
+        "description": "Cas valide attendu : sentiment = 'positif'."
+      },
+      "response": []
+    },
+    {
+      "name": "POST /predict — review négative",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"texte\": \"Accueil glacial à la réception, chambre froide et bruyante, nous ne reviendrons pas.\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/predict",
+          "host": ["{{base_url}}"],
+          "path": ["predict"]
+        },
+        "description": "Cas valide attendu : sentiment = 'négatif'."
+      },
+      "response": []
+    },
+    {
+      "name": "POST /predict — texte vide (422 attendu)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"texte\": \"\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/predict",
+          "host": ["{{base_url}}"],
+          "path": ["predict"]
+        },
+        "description": "Validation Pydantic : texte vide doit renvoyer 422."
+      },
+      "response": []
+    }
+  ]
+}

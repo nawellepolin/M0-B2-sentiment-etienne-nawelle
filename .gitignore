@@ -1,0 +1,25 @@
+# Environments
+.env
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Caches modèles (volumes Docker bind-mount)
+models/
+ollama-data/
+
+# Logs
+logs/
+*.log
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Tests
+.pytest_cache/
+.coverage
+htmlcov/

@@ -1,0 +1,17 @@
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+pydantic==2.10.3
+pydantic-settings==2.7.0
+loguru==0.7.3
+httpx==0.28.1
+
+# HF Transformers — torch CPU est installé séparément dans le Dockerfile.
+# protobuf et sentencepiece sont des dépendances natives de CamemBERT
+# (tokenizer SentencePiece) — souvent absentes par défaut, à expliciter.
+transformers==4.46.3
+sentencepiece==0.2.0
+protobuf>=3.20,<5
+
+# Tests
+pytest==8.3.4
+pytest-asyncio==0.24.0

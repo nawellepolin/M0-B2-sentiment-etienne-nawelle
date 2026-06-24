@@ -1,0 +1,53 @@
+# docker-compose.yml — M0-B2 Aubergine Hôtels (sentiment FR avec CamemBERT)
+#
+# Lancement : docker compose up --build
+# Arrêt :     Ctrl+C puis docker compose down
+#
+# La stack expose 2 services :
+#   - api-nlp        FastAPI + transformers (port 8000)
+#   - ui-streamlit   UI utilisateur          (port 8501)
+
+services:
+  api-nlp:
+    build:
+      context: ./services/api-nlp
+      dockerfile: Dockerfile
+    container_name: m0b2-api-nlp
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      # Chemin interne au conteneur (non configurable par l'apprenant)
+      HF_HOME: /app/models
+    volumes:
+      # cache modèle HF (sinon re-download à chaque up) — préserve aussi entre `down` et `up`
+      - ./models:/app/models
+      - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=2)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    networks:
+      - m0b2-net
+
+  ui-streamlit:
+    build:
+      context: ./services/ui-streamlit
+      dockerfile: Dockerfile
+    container_name: m0b2-ui-streamlit
+    ports:
+      - "8501:8501"
+    environment:
+      API_URL: http://api-nlp:8000
+    depends_on:
+      api-nlp:
+        condition: service_started
+    networks:
+      - m0b2-net
+
+networks:
+  m0b2-net:
+    driver: bridge

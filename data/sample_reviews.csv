@@ -1,0 +1,31 @@
+id,hotel,texte,note_client,sentiment_attendu
+1,Aubergine Bordeaux,"Accueil glacial à la réception, chambre froide et bruyante, nous ne reviendrons pas.",1,négatif
+2,Aubergine Bordeaux,"Personnel charmant, chambre impeccable, petit-déjeuner copieux. On reviendra avec plaisir.",5,positif
+3,Aubergine La Rochelle,"Séjour correct sans plus. La chambre fait son âge mais reste fonctionnelle pour une nuit.",3,neutre
+4,Aubergine La Rochelle,"Chambre superbe avec vue sur le port mais petit-déjeuner décevant et service très lent.",3,neutre
+5,Aubergine Biarritz,"Personnel charmant, comme une porte de prison. Trois quarts d'heure d'attente au check-in.",1,négatif
+6,Aubergine Biarritz,"Vue magnifique, lit confortable, calme absolu. Exactement ce qu'on cherchait pour un weekend.",5,positif
+7,Aubergine Pau,"Pas mauvais du tout, on s'attendait à pire vu les avis. Bonne surprise sur le rapport qualité-prix.",4,positif
+8,Aubergine Pau,"Mieux que la dernière fois, c'est déjà ça. Reste que la douche fuit toujours dans la salle de bain.",2,négatif
+9,Aubergine Périgueux,"Établissement standard, conforme à la description. Rien à signaler de particulier.",3,neutre
+10,Aubergine Périgueux,"Hôtel d'une médiocrité rare. Bruit de plomberie toute la nuit, et personne pour s'en occuper.",1,négatif
+11,Aubergine Arcachon,"Excellente nuit, accueil au top, vue sur le bassin imprenable. Coup de cœur de l'année !",5,positif
+12,Aubergine Arcachon,"On a passé un séjour qu'on n'oubliera pas. La climatisation en panne en plein août, sympa.",1,négatif
+13,Aubergine Limoges,"Petit déjeuner buffet correct mais sans surprise. Chambre propre, literie ferme. Standard.",3,neutre
+14,Aubergine Limoges,"Réception agréable, chambre récemment rénovée, beau bar à vins en bas. Très bonne adresse.",4,positif
+15,Aubergine Bayonne,"Conditions sanitaires limites dans la salle de bain. Cheveux dans la douche, poubelle pleine au check-in.",1,négatif
+16,Aubergine Bayonne,"Bonne situation centrale, parking pratique. Chambre un peu petite mais bien insonorisée.",4,positif
+17,Aubergine Agen,"L'hôtel n'est plus ce qu'il était, je m'en souviens autrement quand j'y allais étudiant.",2,négatif
+18,Aubergine Agen,"Séjour neutre, sans plus. Le personnel fait son travail, l'hôtel sa fonction. Rien de mémorable.",3,neutre
+19,Aubergine Bergerac,"Quelle déception après les avis enthousiastes. Chambre humide et odeur de tabac persistante.",1,négatif
+20,Aubergine Bergerac,"Charmant, décoration soignée, restaurant inventif. On reviendra dès que possible avec des amis.",5,positif
+21,Aubergine Cognac,"Hôtel correct, sans plus, sans moins. Idéal pour une étape de passage mais pas pour un séjour.",3,neutre
+22,Aubergine Cognac,"Personnel adorable qui s'est mis en quatre pour nous trouver une chambre malgré notre arrivée tardive.",5,positif
+23,Aubergine Sarlat,"Wifi quasi inexistant, climatisation poussive, petit-déjeuner aux abonnés absents. Évitez.",1,négatif
+24,Aubergine Sarlat,"Très bonne surprise, vraie attention aux détails dans la chambre. Bouquet de lavande, eau plate offerte.",5,positif
+25,Aubergine Saintes,"Hôtel propre, bien tenu, mais sans personnalité. Aucun défaut, aucune émotion non plus.",3,neutre
+26,Aubergine Saintes,"Si vous aimez attendre 25 minutes pour un check-in, c'est l'endroit rêvé. Sinon, passez votre chemin.",1,négatif
+27,Aubergine Royan,"Pas mal du tout pour le prix. Petit-déjeuner basique mais correct. Bonne adresse pour un weekend court.",4,positif
+28,Aubergine Royan,"Chambre lumineuse, accueil pro, mais les murs sont fins et on entend tout du couloir.",3,neutre
+29,Aubergine Niort,"Que dire à part que c'était parfait. Personnel, propreté, confort, calme. Tout y était. Bravo.",5,positif
+30,Aubergine Niort,"Annulez votre réservation tant qu'il est temps. Service inexistant, chambre douteuse, prix abusif.",1,négatif
