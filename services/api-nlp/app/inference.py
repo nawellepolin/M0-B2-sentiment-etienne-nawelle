@@ -19,32 +19,33 @@ import time
 from typing import Any
 
 from app.schemas import Sentiment, SentimentOut
+from loguru import logger
 
 
-def map_stars_to_sentiment(star_label: str) -> Sentiment:
-    """Mappe un label 5 étoiles ('1 star', ..., '5 stars') en 3 classes métier.
+def map_stars_to_sentiment(scores: dict[str, float]) -> Sentiment:
+    """Mappe les scores 5★ en 3 classes métier via moyenne pondérée.
 
-    À compléter par l'apprenant. **Le choix du mapping est un arbitrage
-    métier**, pas une recette imposée : plusieurs découpages sont valides
-    (cf. mini-cours `02_HuggingFace_Transformers_essentiel.md`, section
-    "Justification du seuil de mapping").
-
-    Ton travail : proposer **ton** mapping et **le justifier** dans le
-    README perso async (coût d'un faux positif / faux négatif côté
-    métier Aubergine Hôtels).
+    Stratégie : on calcule la moyenne des probabilités pour chaque groupe
+    métier et on retourne la classe dont la moyenne est la plus élevée.
+    - négatif  : moyenne(1★, 2★)
+    - neutre   : moyenne(2★, 3★, 4★)
+    - positif  : moyenne(4★, 5★)
 
     Args:
-        star_label: label produit par le modèle (ex: '4 stars').
+        scores: dict label → probabilité produit par le pipeline HF.
 
     Returns:
         Sentiment 3 classes.
-
-    Raises:
-        ValueError: si `star_label` n'est pas dans le format attendu.
     """
-    # TODO Tâche 3 — implémenter le mapping de ton choix et documenter
-    # le raisonnement métier dans le README perso async.
-    raise NotImplementedError("Compléter `map_stars_to_sentiment` (Tâche 3).")
+    mean_neg = (scores["1 star"] + scores["2 stars"]) / 2
+    mean_neutre = (scores["2 stars"] + scores["3 stars"] + scores["4 stars"]) / 3
+    mean_pos = (scores["4 stars"] + scores["5 stars"]) / 2
+
+    best = max(
+        [("négatif", mean_neg), ("neutre", mean_neutre), ("positif", mean_pos)],
+        key=lambda x: x[1],
+    )
+    return best[0]
 
 
 def predict_sentiment(pipeline: Any, text: str, model_name: str) -> SentimentOut:
@@ -69,4 +70,20 @@ def predict_sentiment(pipeline: Any, text: str, model_name: str) -> SentimentOut
     # 5. Appeler `map_stars_to_sentiment(label_argmax)` pour obtenir la
     #    classe métier.
     # 6. Renvoyer un `SentimentOut(...)`.
-    raise NotImplementedError("Compléter `predict_sentiment` (Tâche 3).")
+
+    logger.info(f"Requête /predict reçue : {text}")
+    t0 = time.perf_counter()
+
+    proba_list = pipeline(text, top_k=None)
+    scores_5_stars = {item['label']: item['score'] for item in proba_list}
+    sentiment = map_stars_to_sentiment(scores_5_stars)
+
+    duree_ms = (time.perf_counter() - t0) * 1000
+    logger.info(f"Score 5 stars: {scores_5_stars}, sentiment: {sentiment}, durée: {duree_ms:.1f} ms")
+
+    return SentimentOut(
+        sentiment=sentiment,
+        scores_5_stars=scores_5_stars,
+        model_name=model_name,
+        latence_ms=duree_ms,
+    )

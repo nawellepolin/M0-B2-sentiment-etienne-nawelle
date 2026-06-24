@@ -15,6 +15,7 @@ from typing import Any
 
 from fastapi import FastAPI, HTTPException, status
 from loguru import logger
+from transformers import pipeline
 
 from app import inference
 from app.schemas import HealthOut, InfoOut, ReviewIn, SentimentOut
@@ -95,7 +96,6 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-
 @app.get("/health", response_model=HealthOut)
 def health() -> HealthOut:
     """Statut du service.
@@ -140,10 +140,11 @@ def predict(payload: ReviewIn) -> SentimentOut:
 
     # TODO Tâche 3 — Appeler inference.predict_sentiment() et logger la requête.
     # Pour l'instant, on signale que ce n'est pas implémenté.
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail=(
-            "Endpoint /predict pas encore implémenté. Voir Tâche 3 du brief "
-            "et `app/inference.py`."
-        ),
+
+    result = inference.predict_sentiment(
+        pipeline=state["pipeline"],
+        text=payload.texte,
+        model_name=MODEL_NAME,
     )
+
+    return result
