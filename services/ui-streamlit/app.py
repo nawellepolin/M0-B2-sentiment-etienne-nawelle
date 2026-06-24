@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import os
 
+import httpx
 import streamlit as st
 
 
@@ -42,28 +43,37 @@ texte = st.text_area(
 )
 
 if st.button("Analyser", type="primary", disabled=not texte.strip()):
-    # TODO Tâche 4 — Implémenter l'appel HTTP à POST {API_URL}/predict
-    #
-    # Indications :
-    # - Utilise httpx (déjà dans requirements.txt).
-    # - Timeout 10 s.
-    # - En cas d'erreur réseau ou HTTP >= 500 : affiche un message d'erreur
-    #   clair via st.error("...").
-    # - Affiche le sentiment dans un encadré coloré (st.success / st.warning /
-    #   st.error selon la classe).
-    # - Affiche les scores 5 étoiles bruts via st.bar_chart().
-    st.info("📡 Appel API à implémenter — Tâche 4 du brief M0-B2.")
-    st.code(
-        f'httpx.post("{API_URL}/predict", json={{"texte": "..."}}, timeout=10)',
-        language="python",
-    )
+    try:
+        with st.spinner("Inférence en cours…"):
+            response = httpx.post(
+                f"{API_URL}/predict",
+                json={"texte": texte},
+                timeout=10,
+            )
+            response.raise_for_status()
+            data = response.json()
+    except httpx.TimeoutException:
+        st.error("API trop lente (>10s).")
+    except httpx.HTTPStatusError as exc:
+        st.error(f"HTTP {exc.response.status_code} : {exc.response.text}")
+    except httpx.HTTPError as exc:
+        st.error(f"Erreur réseau : {exc}")
+    else:
+        sentiment = data["sentiment"]
+        display = {"négatif": st.error, "neutre": st.warning, "positif": st.success}
+        display[sentiment](f"Sentiment détecté : **{sentiment}**")
+        st.bar_chart(data["scores_5_stars"])
+        st.caption(f"Latence : {data['latence_ms']} ms — modèle : {data['model_name']}")
+
 
 with st.sidebar:
     st.markdown(f"**API URL** : `{API_URL}`")
-    st.markdown(
-        "**Statut** : à brancher (Tâche 4).\n\n"
-        "Une fois branchée, l'UI doit afficher :\n"
-        "- Le sentiment (3 classes)\n"
-        "- Les probas 5★ brutes\n"
-        "- Un message d'erreur clair si l'API tombe"
-    )
+    try:
+        health = httpx.get(f"{API_URL}/health", timeout=2).json()
+        if health.get("model_loaded"):
+            st.success("API joignable, modèle chargé")
+        else:
+            st.warning("API joignable, modèle en chargement")
+    except httpx.HTTPError:
+        st.error("API injoignable")
+
