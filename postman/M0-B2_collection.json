@@ -108,6 +108,121 @@
         "description": "Validation Pydantic : texte vide doit renvoyer 422."
       },
       "response": []
+    },
+    {
+      "name": "POST /predict — uniquement des espaces (422 attendu)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"texte\": \"     \"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/predict",
+          "host": ["{{base_url}}"],
+          "path": ["predict"]
+        },
+        "description": "Cas limite : texte composé uniquement d'espaces. Le field_validator `texte_non_blanc` doit renvoyer 422."
+      },
+      "response": []
+    },
+    {
+      "name": "POST /predict — champ texte manquant (422 attendu)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        },
+        "url": {
+          "raw": "{{base_url}}/predict",
+          "host": ["{{base_url}}"],
+          "path": ["predict"]
+        },
+        "description": "Cas limite : payload sans le champ obligatoire `texte`. Pydantic doit renvoyer 422 (champ requis manquant)."
+      },
+      "response": []
+    },
+    {
+      "name": "POST /predict — review piégeuse (ironie)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"texte\": \"Si vous aimez attendre 25 minutes pour un check-in, c'est l'endroit rêvé. Sinon, passez votre chemin.\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/predict",
+          "host": ["{{base_url}}"],
+          "path": ["predict"]
+        },
+        "description": "Cas piégeux (ironie) : attendu 'négatif', mais le modèle peut se laisser piéger par les mots positifs ('rêvé'). À observer pour l'analyse des reviews mal classées (livrable B)."
+      },
+      "response": []
+    },
+    {
+      "name": "POST /predict/batch — lot de reviews",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"reviews\": [\n    {\"texte\": \"Personnel charmant, comme une porte de prison. Trois quarts d'heure d'attente au check-in.\"},\n    {\"texte\": \"Pas mauvais du tout, on s'attendait à pire vu les avis. Bonne surprise sur le rapport qualité-prix.\"},\n    {\"texte\": \"Mieux que la dernière fois, c'est déjà ça. Reste que la douche fuit toujours dans la salle de bain.\"},\n    {\"texte\": \"Chambre superbe avec vue sur le port mais petit-déjeuner décevant et service très lent.\"},\n    {\"texte\": \"On a passé un séjour qu'on n'oubliera pas. La climatisation en panne en plein août, sympa.\"}\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/predict/batch",
+          "host": ["{{base_url}}"],
+          "path": ["predict", "batch"]
+        },
+        "description": "Classe plusieurs reviews en une requête (200). Lot pré-rempli avec 5 reviews piégeuses du dataset (ironie, litote, comparatif temporel, mixte) pour repérer les cas mal classés — livrable B."
+      },
+      "response": []
+    },
+    {
+      "name": "POST /predict/batch — lot vide (422 attendu)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"reviews\": []\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/predict/batch",
+          "host": ["{{base_url}}"],
+          "path": ["predict", "batch"]
+        },
+        "description": "Cas limite : lot vide. Le schéma impose min_length=1, donc 422."
+      },
+      "response": []
     }
   ]
 }
