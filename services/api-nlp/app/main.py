@@ -18,7 +18,7 @@ from fastapi import FastAPI, HTTPException, status
 from loguru import logger
 
 from app import inference
-from app.schemas import HealthOut, InfoOut, ReviewIn, SentimentOut
+from app.schemas import BatchIn, BatchOut, HealthOut, InfoOut, ReviewIn, SentimentOut
 
 
 # --- Configuration Loguru (compact, lisible pour des apprenants) ---
@@ -163,3 +163,31 @@ def predict(payload: ReviewIn) -> SentimentOut:
         result.latence_ms,
     )
     return result
+
+
+@app.post("/predict/batch", response_model=BatchOut, status_code=status.HTTP_200_OK)
+def predict_batch(payload: BatchIn) -> BatchOut:
+    """Classifie un lot de reviews FR en une seule requête.
+
+    Les résultats sont renvoyés dans l'ordre des reviews d'entrée.
+    """
+    for review in payload.reviews:
+        if len(review.texte) > MAX_TEXT_LENGTH:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=f"Texte trop long (> {MAX_TEXT_LENGTH} caractères).",
+            )
+
+    logger.info("predict/batch: lot reçu ({} reviews)", len(payload.reviews))
+
+    results = [
+        inference.predict_sentiment(
+            pipeline=state["pipeline"],
+            text=review.texte,
+            model_name=MODEL_NAME,
+        )
+        for review in payload.reviews
+    ]
+
+    logger.info("predict/batch: {} reviews classées", len(results))
+    return BatchOut(results=results)

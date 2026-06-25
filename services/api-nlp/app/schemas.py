@@ -51,6 +51,22 @@ class SentimentOut(BaseModel):
     latence_ms: float = Field(..., ge=0, description="Temps d'inférence côté serveur en millisecondes.")
 
 
+class BatchIn(BaseModel):
+    reviews: list[ReviewIn] = Field(
+        ...,
+        min_length=1,
+        max_length=100,
+        description="Liste de reviews à classer (1 à 100 par lot).",
+    )
+
+
+class BatchOut(BaseModel):
+    results: list[SentimentOut] = Field(
+        ...,
+        description="Résultats de classification, dans l'ordre des reviews d'entrée.",
+    )
+
+
 class HealthOut(BaseModel):
     """Réponse de GET /health.
 
