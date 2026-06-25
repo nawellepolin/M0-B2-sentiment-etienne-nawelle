@@ -130,6 +130,32 @@ curl -X POST http://localhost:8000/predict \
 > 💡 Le plus simple pour tester : <http://localhost:8000/docs> → `POST /predict`
 > → « Try it out ».
 
+### `POST /predict/batch`
+Classifie **plusieurs reviews en une seule requête**. Pratique pour rejouer un
+dataset entier (ex. les 30 reviews de `data/sample_reviews.csv`) et repérer les
+cas mal classés — cf. [🔍 Analyse des reviews mal classées](#-analyse-des-reviews-mal-classées).
+
+**Corps de la requête (`application/json`)**
+
+| Champ | Type | Contraintes |
+|---|---|---|
+| `reviews` | array | 1 à 100 objets `{ "texte": "…" }`, chacun validé comme `/predict` |
+
+**Exemple de requête**
+```bash
+curl -X POST http://localhost:8000/predict/batch \
+  -H "Content-Type: application/json" \
+  -d '{"reviews": [{"texte": "Chambre impeccable !"}, {"texte": "Accueil glacial."}]}'
+```
+
+**Réponse `200`** — un tableau `results`, dans l'ordre des reviews d'entrée :
+```json
+{ "results": [ { "sentiment": "positif", "scores_5_stars": { "...": "..." }, "model_name": "...", "latence_ms": 31.2 } ] }
+```
+
+- **`422`** : lot vide, ou **une seule** review invalide → tout le lot est rejeté
+  (validation Pydantic, avant tout traitement).
+
 ---
 
 ## 🧠 Mapping 5★ → 3 classes & justification
@@ -216,6 +242,61 @@ pour ce besoin précis.
 
 ---
 
+## 🔍 Analyse des reviews mal classées
+
+Reviews tirées de `data/sample_reviews.csv`, soumises au service via
+`POST /predict/batch`. On compare le `sentiment` prédit au `sentiment_attendu`
+(vérité terrain) et on lit les `scores_5_stars` bruts pour comprendre *comment*
+le modèle se trompe.
+
+### Les 3 cas mal classés analysés
+
+| # | Review (extrait) | Attendu | Prédit | Pic du modèle | Hypothèse |
+|---|---|---|---|---|---|
+| 12 | « …un séjour qu'on n'oubliera pas. La climatisation en panne en plein août, **sympa**. » | négatif | **positif** | 4★ = 0.51 · 5★ = 0.40 | **ironie** |
+| 7 | « **Pas mauvais du tout**, on s'attendait à pire vu les avis. » | positif | **neutre** | 3★ = 0.67 | **négation / litote** |
+| 5 | « Personnel charmant, **comme une porte de prison**. Trois quarts d'heure d'attente. » | négatif | **neutre** | 3★ = 0.32 · 2★ = 0.26 | **ironie** |
+
+### Hypothèse explicative
+
+Les trois erreurs sont **sémantiques**, pas des erreurs d'agrégation : le modèle
+place sincèrement sa masse de probabilité sur la mauvaise étoile, donc le
+mapping 5★ → 3 classes ne peut rien y faire (cf. [Portée et limites](#portée-et-limites)).
+Le mécanisme commun : **le modèle lit les marqueurs de surface au premier degré**.
+
+- **#12 (ironie, le cas le plus grave)** — « on n'oubliera pas » et « sympa »
+  sont positifs *en surface*. Le modèle met **0.90 sur 4★+5★** et classe une
+  review franchement négative en *positif*. Aucun seuil de mapping ne rattrape
+  une masse aussi nette du mauvais côté.
+- **#7 (litote / négation)** — « pas mauvais du tout », « on s'attendait à pire »
+  expriment du positif via des mots négatifs. Le modèle traite la négation
+  littéralement et se fige sur 3★ (**0.67**) : il y voit du « moyen », pas du
+  positif soulagé.
+- **#5 (ironie douce)** — « personnel charmant » masque « comme une porte de
+  prison ». Le modèle perçoit une review *mitigée* (pic 3★) sans détecter
+  l'inversion ironique ; la zone négative n'arrive qu'en 2ᵉ (0.185).
+
+**Direction systématique des erreurs** : toutes vont dans le sens d'une
+**sous-détection de la négativité** (négatif → neutre/positif), jamais l'inverse.
+Pour Aubergine Hôtels c'est le sens d'erreur le plus coûteux — on rate des
+clients mécontents — ce qui justifie a posteriori le biais prudent du mapping
+(cf. [Arbitrage métier](#arbitrage-métier-coût-des-erreurs)).
+
+### Deux contre-exemples qui précisent le mécanisme
+
+Le modèle n'échoue pas sur *toute* figure de style — ce qui affine l'hypothèse :
+
+- **Ironie #26** (« Si vous aimez attendre 25 minutes…, c'est l'endroit rêvé.
+  Sinon, **passez votre chemin** ») → **bien classée négatif** (1★ = 0.44).
+  Ici l'ironie est *ancrée* sur du négatif explicite (« attendre 25 minutes »,
+  « passez votre chemin ») que le modèle capte. L'ironie ne piège donc que
+  **quand la négativité reste purement implicite** (cas #12).
+- **Mixte #4** (« chambre superbe **mais** petit-déjeuner décevant et service
+  lent ») → **bien classée neutre**. L'ambivalence *réelle* est correctement
+  agrégée : ce sont les figures rhétoriques (ironie, litote) qui cassent le
+  modèle, pas l'ambivalence en soi.
+
+---
 
 ## 🐳 Docker Compose
 
